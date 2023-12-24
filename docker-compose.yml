@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./:/var/www/
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    ports:
+      - 8888:80
+    container_name: symfony_nginx
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    volumes:
+      - ./:/var/www/
+    depends_on:
+      - db
+    container_name: symfony_app
+
+  db:
+    image: mariadb:10.6.16
+    restart: always
+    volumes:
+      - ./tmp/db:/var/lib/mysql
+    environment:
+      MARIADB_DATABASE: tournaments
+      MARIADB_USER: root
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - 3307:3306
+    container_name: symfony_db
