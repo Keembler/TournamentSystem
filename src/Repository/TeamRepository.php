@@ -21,6 +21,19 @@ class TeamRepository extends ServiceEntityRepository
         parent::__construct($registry, Team::class);
     }
 
+    /**
+     * Получение всех наименований команд
+     *
+     * @return array
+     */
+    public function findAllWithOneField(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t.name')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return Team[] Returns an array of Team objects
 //     */

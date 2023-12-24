@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Tournament;
 use App\Form\TournamentType;
+use App\Repository\TeamRepository;
 use App\Repository\TournamentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,13 +24,26 @@ class TournamentController extends AbstractController
     }
 
     #[Route('/new', name: 'app_tournament_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, TeamRepository $teamRepository): Response
     {
         $tournament = new Tournament();
-        $form = $this->createForm(TournamentType::class, $tournament);
+        $teams = [];
+
+        foreach ($teamRepository->findAllWithOneField() as $item) {
+            $teams[] = $item['name'];
+        }
+
+        $form = $this->createForm(TournamentType::class, $tournament, [
+            'teams' => $teams,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $formData = $form->getData();
+
+            if (count($formData->getMatches()) == 0)
+                $tournament->setMatches($teams);
+
             $entityManager->persist($tournament);
             $entityManager->flush();
 
